@@ -1,6 +1,9 @@
+"""Mock LMS SCIM API toolkit for testing and development."""
+
 import logging
 import os
 import re
+from ast import alias
 from pathlib import Path
 from typing import Annotated
 
@@ -9,7 +12,7 @@ from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 logging.basicConfig(
-    level=logging.DEBUG, format="%(asctime)s %(levelname)s %(name)s: %(message)s"
+    level=logging.DEBUG, format="%(asctime)s %(levelname)s %(name)s: %(message)s",
 )
 
 log = logging.getLogger(__name__)
@@ -24,10 +27,10 @@ if not TOKEN:
     log.critical("SCIM_TOKEN environment variable is not set")
     raise RuntimeError("SCIM_TOKEN environment variable is not set")
 
-log.info(f"SCIM_TOKEN loaded successfully: {TOKEN!r} (length={len(TOKEN)})")
+log.info("SCIM_TOKEN loaded successfully: %s (length=%d)", TOKEN, len(TOKEN))
 
 security = HTTPBearer()
-auth_creds = Annotated[HTTPAuthorizationCredentials, Depends(security)]
+
 app = FastAPI(title="Mock LMS SCIM API")
 
 users = [
@@ -37,7 +40,7 @@ users = [
         "name": {"givenName": "Alice", "familyName": "Adams"},
         "displayName": "Alice Adams",
         "emails": [
-            {"value": "alice.adams@example.com", "type": "work", "primary": True}
+            {"value": "alice.adams@example.com", "type": "work", "primary": True},
         ],
         "active": True,
         "roles": [{"value": "role-learner", "display": "Learner"}],
@@ -97,7 +100,7 @@ users = [
         "name": {"givenName": "Carol", "familyName": "Clark"},
         "displayName": "Carol Clark",
         "emails": [
-            {"value": "carol.clark@example.com", "type": "work", "primary": True}
+            {"value": "carol.clark@example.com", "type": "work", "primary": True},
         ],
         "active": True,
         "roles": [{"value": "role-course-creator", "display": "Course Creator"}],
@@ -120,11 +123,11 @@ users = [
         "name": {"givenName": "David", "familyName": "Davis"},
         "displayName": "David Davis",
         "emails": [
-            {"value": "david.davis@example.com", "type": "work", "primary": True}
+            {"value": "david.davis@example.com", "type": "work", "primary": True},
         ],
         "active": True,
         "roles": [
-            {"value": "role-compliance-manager", "display": "Compliance Manager"}
+            {"value": "role-compliance-manager", "display": "Compliance Manager"},
         ],
         "entitlements": [
             {
@@ -155,7 +158,7 @@ users = [
         "name": {"givenName": "Erin", "familyName": "Evans"},
         "displayName": "Erin Evans",
         "emails": [
-            {"value": "erin.evans@example.com", "type": "work", "primary": True}
+            {"value": "erin.evans@example.com", "type": "work", "primary": True},
         ],
         "active": True,
         "roles": [{"value": "role-auditor", "display": "Auditor"}],
@@ -193,7 +196,7 @@ users = [
         "name": {"givenName": "Frank", "familyName": "Foster"},
         "displayName": "Frank Foster",
         "emails": [
-            {"value": "frank.foster@example.com", "type": "work", "primary": True}
+            {"value": "frank.foster@example.com", "type": "work", "primary": True},
         ],
         "active": True,
         "roles": [{"value": "role-lms-admin", "display": "LMS Administrator"}],
@@ -344,7 +347,6 @@ def validate_token(
     credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)],
 ) -> HTTPAuthorizationCredentials:
     """Validate the bearer token provided in the Authorization header."""
-
     if credentials.credentials != TOKEN:
         log.warning(
             "Authentication failed: received token length=%d",
@@ -357,27 +359,25 @@ def validate_token(
 
     return credentials
 
+auth_creds = Annotated[HTTPAuthorizationCredentials, Depends(validate_token)]
 
 @app.get("/")
 def root() -> dict:
     """Root endpoint for health check."""
-
     return {"service": "Mock LMS SCIM API", "status": "running"}
-
 
 @app.get("/scim/v2/Users")
 def get_users(
     _credentials: auth_creds,
-    filter: str | None = Query(default=None),
-    startIndex: int = Query(default=1, ge=1),
-    count: int = Query(default=100, ge=1),
+    filtered: Annotated[str | None, Query()] = None,
+    start_index: Annotated[int, Query(alias="startIndex")] = 1,
+    count: Annotated[int, Query(ge=1)] = 100,
 ) -> dict:
     """Get a list of users with optional filtering and pagination."""
-
     filtered_users = users
 
-    if filter:
-        match = re.match(r'userName\s+eq\s+"([^"]+)"', filter, re.IGNORECASE)
+    if filtered:
+        match = re.match(r'userName\s+eq\s+"([^"]+)"', filtered, re.IGNORECASE)
 
         if match:
             username = match.group(1)
@@ -386,7 +386,7 @@ def get_users(
                 user for user in users if user["userName"].lower() == username.lower()
             ]
 
-    start = startIndex - 1
+    start = start_index - 1
     end = start + count
 
     paged_users = filtered_users[start:end]
@@ -394,11 +394,10 @@ def get_users(
     return {
         "schemas": ["urn:ietf:params:scim:api:messages:2.0:ListResponse"],
         "totalResults": len(filtered_users),
-        "startIndex": startIndex,
+        "startIndex": start_index,
         "itemsPerPage": len(paged_users),
         "Resources": paged_users,
     }
-
 
 @app.get("/scim/v2/Users/{user_id}")
 def get_user(
@@ -406,7 +405,6 @@ def get_user(
     _credentials: auth_creds,
 ) -> dict:
     """Get a specific user by ID."""
-
     user = next((user for user in users if user["id"] == user_id), None)
 
     if not user:
@@ -414,13 +412,11 @@ def get_user(
 
     return user
 
-
 @app.get("/scim/v2/ResourceTypes")
 def get_resource_types(
     _credentials: auth_creds,
 ) -> dict:
     """Get a list of resource types."""
-
     resources = [
         {
             "schemas": ["urn:ietf:params:scim:schemas:core:2.0:ResourceType"],
@@ -472,7 +468,6 @@ def get_resource_types(
         "Resources": resources,
     }
 
-
 @app.get("/scim/v2/Roles")
 def get_roles(
     _credentials: auth_creds,
@@ -491,10 +486,8 @@ def get_roles(
         "Resources": resources,
     }
 
-
 def entitlement_response(items: list, entitlement_type: str):
     """Generate a SCIM response for entitlements (training catalogs, organizational scopes, reporting access)."""
-
     resources = []
 
     for item in items:
@@ -505,7 +498,7 @@ def entitlement_response(items: list, entitlement_type: str):
                 "displayName": item["displayName"],
                 "type": entitlement_type,
                 "description": item["description"],
-            }
+            },
         )
 
     return {
@@ -516,29 +509,23 @@ def entitlement_response(items: list, entitlement_type: str):
         "Resources": resources,
     }
 
-
 @app.get("/scim/v2/TrainingCatalogs")
 def get_training_catalogs(
     _credentials: auth_creds,
 ) -> dict:
     """Get a list of training catalogs."""
-
     return entitlement_response(training_catalogs, "Training Catalog")
-
 
 @app.get("/scim/v2/OrganizationalScopes")
 def get_organizational_scopes(
     _credentials: auth_creds,
 ) -> dict:
     """Get a list of organizational scopes."""
-
     return entitlement_response(organizational_scopes, "Organizational Scope")
-
 
 @app.get("/scim/v2/ReportingAccess")
 def get_reporting_access(
     _credentials: auth_creds,
 ) -> dict:
     """Get a list of reporting access entitlements."""
-
     return entitlement_response(reporting_access, "Reporting Access")

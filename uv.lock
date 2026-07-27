@@ -32,6 +32,12 @@ wheels = [
 ]
 
 [[package]]
+name = "ast"
+version = "0.0.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/4b/fb/2b954d2a38c9a0ef1da6a46737a75b4dbf6f60e5dad0f267a4ec5ece20de/AST-0.0.2.tar.gz", hash = "sha256:dc5b79c6ba11aea72c59c791a0bc5ae483b4c18fec6f643002d6fae24361eba0", size = 19415 }
+
+[[package]]
 name = "click"
 version = "8.4.2"
 source = { registry = "https://pypi.org/simple" }
@@ -91,6 +97,7 @@ name = "lms-scim"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "ast" },
     { name = "fastapi" },
     { name = "python-dotenv" },
     { name = "ruff" },
@@ -100,6 +107,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "ast", specifier = ">=0.0.2" },
     { name = "fastapi", specifier = ">=0.140.2" },
     { name = "python-dotenv", specifier = ">=1.2.2" },
     { name = "ruff", specifier = ">=0.16.0" },
