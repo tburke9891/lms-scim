@@ -27,7 +27,7 @@ if not TOKEN:
 log.info(f"SCIM_TOKEN loaded successfully: {TOKEN!r} (length={len(TOKEN)})")
 
 security = HTTPBearer()
-
+auth_creds = Annotated[HTTPAuthorizationCredentials, Depends(security)]
 app = FastAPI(title="Mock LMS SCIM API")
 
 users = [
@@ -367,7 +367,7 @@ def root() -> dict:
 
 @app.get("/scim/v2/Users")
 def get_users(
-    _credentials: Annotated[HTTPAuthorizationCredentials, Depends(validate_token)],
+    _credentials: auth_creds,
     filter: str | None = Query(default=None),
     startIndex: int = Query(default=1, ge=1),
     count: int = Query(default=100, ge=1),
@@ -403,7 +403,7 @@ def get_users(
 @app.get("/scim/v2/Users/{user_id}")
 def get_user(
     user_id: str,
-    _credentials: Annotated[HTTPAuthorizationCredentials, Depends(validate_token)],
+    _credentials: auth_creds,
 ) -> dict:
     """Get a specific user by ID."""
 
@@ -417,7 +417,7 @@ def get_user(
 
 @app.get("/scim/v2/ResourceTypes")
 def get_resource_types(
-    _credentials: Annotated[HTTPAuthorizationCredentials, Depends(validate_token)],
+    _credentials: auth_creds,
 ) -> dict:
     """Get a list of resource types."""
 
@@ -475,7 +475,7 @@ def get_resource_types(
 
 @app.get("/scim/v2/Roles")
 def get_roles(
-    _credentials: Annotated[HTTPAuthorizationCredentials, Depends(validate_token)],
+    _credentials: auth_creds,
 ) -> dict:
     """Get a list of LMS roles."""
     resources = []
@@ -519,7 +519,7 @@ def entitlement_response(items: list, entitlement_type: str):
 
 @app.get("/scim/v2/TrainingCatalogs")
 def get_training_catalogs(
-    _credentials: Annotated[HTTPAuthorizationCredentials, Depends(validate_token)],
+    _credentials: auth_creds,
 ) -> dict:
     """Get a list of training catalogs."""
 
@@ -528,7 +528,7 @@ def get_training_catalogs(
 
 @app.get("/scim/v2/OrganizationalScopes")
 def get_organizational_scopes(
-    _credentials: Annotated[HTTPAuthorizationCredentials, Depends(validate_token)],
+    _credentials: auth_creds,
 ) -> dict:
     """Get a list of organizational scopes."""
 
@@ -537,7 +537,7 @@ def get_organizational_scopes(
 
 @app.get("/scim/v2/ReportingAccess")
 def get_reporting_access(
-    _credentials: Annotated[HTTPAuthorizationCredentials, Depends(validate_token)],
+    _credentials: auth_creds,
 ) -> dict:
     """Get a list of reporting access entitlements."""
 
