@@ -1,6 +1,12 @@
 # LMS SCIM Service
 
-A mock LMS SCIM 2.0 service implemented with FastAPI. This service exposes a small SCIM-compatible API for LMS users, role resources, training catalogs, organizational scopes, and reporting access.
+A mock LMS SCIM 2.0 service implemented with FastAPI. 
+This service exposes a small SCIM-compatible API for LMS the following:
+- users
+- role resources
+- training catalogs
+- organizational scopes
+- reporting access
 
 ## Features
 
@@ -100,7 +106,7 @@ To stop the server, press `Ctrl+C` in the terminal.
 
 Okta cannot reach http://localhost:8000 on your workstation.
 
-For a quick lab, expose it using Cloudflare Tunnel:
+Expose it using Cloudflare Tunnel:
 ```base
 cloudflared tunnel --url http://localhost:8000
 ```
@@ -115,4 +121,4 @@ Your new SCIM base URL becomes:
 https://random-name.trycloudflare.com/scim/v2
 ```
 
-This gives Okta a publicly reachable HTTPS endpoint while FastAPI runs locally.
+This gives Okta a publicly available endpoint while FastAPI runs locally.
